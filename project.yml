@@ -1,0 +1,56 @@
+name: CoreAIZoo
+options:
+  bundleIdPrefix: com.daisukemajima
+  createIntermediateGroups: true
+
+# CoreAIZoo depends on the sibling `coreai-kit` package (the shared engine / SDK).
+# Clone coreai-kit next to this repo:  ~/code/coreai-kit  and  ~/code/coreai-zoo-app
+packages:
+  coreai-kit:
+    path: ../coreai-kit
+
+# Run config Release: the engine's per-token host work is ~3x slower unoptimized.
+schemes:
+  CoreAIZoo:
+    build:
+      targets:
+        CoreAIZoo: all
+    run:
+      config: Release
+
+targets:
+  CoreAIZoo:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    deploymentTarget:
+      iOS: "27.0"
+      macOS: "27.0"
+    sources:
+      - path: Sources
+    dependencies:
+      - package: coreai-kit
+        product: CoreAIKit
+      - package: coreai-kit
+        product: CoreAIKitUI
+      - package: coreai-kit
+        product: CoreAIKitVision
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.daisukemajima.coreaizoo
+        DEVELOPMENT_TEAM: MFN25KNUGJ
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: CoreAIZoo.entitlements
+        SWIFT_VERSION: "6.0"
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: "YES"
+        INFOPLIST_KEY_CFBundleDisplayName: "CoreAI Zoo"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "CoreAI Zoo records audio only to transcribe it on-device. Nothing leaves your device."
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        SWIFT_APPROACHABLE_CONCURRENCY: "YES"
+        # Big models (2 GB+) cold-specialize past the default jetsam limit on iPhone; the
+        # increased-memory entitlement lets the spec complete (same as CoreAIChat / AudioChat).
+        ENABLE_APP_SANDBOX: "NO"
+        # Dev builds: HARDENED_RUNTIME off for easy local signing. Flip to YES for the
+        # notarized macOS dmg (Phase 3) — notarization requires it.
+        ENABLE_HARDENED_RUNTIME: "NO"
