@@ -1,6 +1,7 @@
-// TranscribeModel — on-device speech-to-text with Whisper large-v3-turbo via CoreAIKit's
-// KitWhisperModel. Downloads the bundle on first load, then transcribes a recorded / chosen /
-// demo clip (16 kHz mono) fully on device. 100 languages, auto-detect, ≤30 s window.
+// TranscribeModel — on-device speech-to-text, catalog-driven. Pick any ASR model on the
+// platform (Whisper / Nemotron everywhere, plus Qwen3-ASR / Parakeet on Mac); the app-side
+// `ASRTranscriber` routes the catalog id to the right kit driver. Downloads the bundle on
+// first load, then transcribes a recorded / chosen / demo clip (16 kHz mono) fully on device.
 
 import CoreAIKit
 import Foundation
@@ -19,7 +20,7 @@ final class TranscribeModel {
 
         var label: String {
             switch self {
-            case .idle: return "Download Whisper to start"
+            case .idle: return "Pick a model and load it"
             case .downloading(let f): return "Downloading… \(Int(f * 100))%"
             case .loading: return "Loading…"
             case .ready: return "Ready — record, choose, or demo"
@@ -34,8 +35,11 @@ final class TranscribeModel {
     var transcript = ""
     var detectedLanguage = ""
     var recording = false
+    var entries: [CatalogEntry] = []
+    var selectedEntry: CatalogEntry?
 
-    private var whisper: KitWhisperModel?
+    private var transcriber: ASRTranscriber?
+    private var loadedID: String?
     private var samples: [Float]?
     private let recorder = MicRecorder()
 
@@ -53,20 +57,38 @@ final class TranscribeModel {
 
     var isReady: Bool { status == .ready }
     var canTranscribe: Bool { status == .ready && samples != nil }
+    /// Whether the loaded model matches the current picker selection.
+    var isSelectionLoaded: Bool { loadedID != nil && loadedID == selectedEntry?.id }
 
-    /// Download (first run) + load the Whisper graph.
+    /// Switching the picker to a different model makes the loaded one stale → require a reload.
+    func selectionChanged() {
+        if !isSelectionLoaded, status == .ready { status = .idle }
+    }
+
+    /// Live catalog with the built-in snapshot as offline fallback.
+    func loadCatalog() async {
+        guard entries.isEmpty else { return }
+        entries = await ModelCatalog.load().available(.asr)
+        if selectedEntry == nil { selectedEntry = entries.first }
+    }
+
+    /// Download (first run) + load the selected ASR model. Reloads when the picker changes.
     func load() {
-        guard !isBusy, whisper == nil else { return }
+        guard !isBusy, let entry = selectedEntry else { return }
+        guard transcriber == nil || loadedID != entry.id else { return }
         status = .loading
+        transcriber = nil
+        loadedID = nil
         Task {
             do {
-                let w = try await KitWhisperModel(model: .largeV3Turbo) { progress in
+                let t = try await ASRTranscriber.load(catalog: entry.id) { progress in
                     Task { @MainActor in
                         self.status = progress.fraction < 1
                             ? .downloading(progress.fraction) : .loading
                     }
                 }
-                self.whisper = w
+                self.transcriber = t
+                self.loadedID = entry.id
                 self.status = .ready
             } catch {
                 self.status = .error(error.localizedDescription)
@@ -113,13 +135,13 @@ final class TranscribeModel {
     }
 
     func transcribe() {
-        guard let whisper, let samples, status == .ready else { return }
+        guard let transcriber, let samples, status == .ready else { return }
         status = .transcribing
         transcript = ""
         detectedLanguage = ""
         Task {
             do {
-                let result = try await whisper.transcribe(samples: samples) { partial in
+                let result = try await transcriber.transcribe(samples: samples) { partial in
                     Task { @MainActor in self.transcript = partial }
                 }
                 self.transcript = result.text

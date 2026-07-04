@@ -16,6 +16,8 @@ struct TranscribeView: View {
             }
         }
         .padding()
+        .task { await model.loadCatalog() }
+        .onChange(of: model.selectedEntry) { _, _ in model.selectionChanged() }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.audio]) { result in
             if case .success(let url) = result { model.loadFile(url) }
         }
@@ -25,10 +27,19 @@ struct TranscribeView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 4) {
-            Text("Transcribe").font(.title2.bold())
-            Text("Whisper large-v3-turbo · 100 languages · on-device")
-                .font(.caption).foregroundStyle(.secondary)
+        VStack(spacing: 6) {
+            HStack(spacing: 10) {
+                Picker("Model", selection: $model.selectedEntry) {
+                    ForEach(model.entries) { entry in
+                        Text(entry.name).tag(Optional(entry))
+                    }
+                }
+                .fixedSize()
+                .disabled(model.isBusy)
+
+                Button(model.isSelectionLoaded ? "Loaded" : "Download & Load") { model.load() }
+                    .disabled(model.isBusy || model.selectedEntry == nil || model.isSelectionLoaded)
+            }
             Text(model.status.label).font(.callout).foregroundStyle(statusColor)
             if let f = model.downloadFraction {
                 ProgressView(value: f).frame(maxWidth: 280)
@@ -39,11 +50,6 @@ struct TranscribeView: View {
 
     private var controls: some View {
         VStack(spacing: 10) {
-            Button(model.isReady ? "Whisper ready" : "Download & Load Whisper") {
-                model.load()
-            }
-            .disabled(model.isBusy || model.isReady)
-
             HStack {
                 Button(model.recording ? "Stop" : "Record") { model.toggleRecord() }
                     .disabled(model.isBusy)
