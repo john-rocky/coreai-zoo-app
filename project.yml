@@ -49,6 +49,10 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "CoreAI Zoo records audio only to transcribe it on-device. Nothing leaves your device."
         INFOPLIST_KEY_NSCameraUsageDescription: "CoreAI Zoo uses the camera for on-device depth, detection, and action recognition. Frames are processed locally and never leave your device."
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        # ASC requires orientations on a universal (iPad-capable) app (error 90474). iPhone
+        # portrait + landscape; iPad all four for multitasking. SwiftUI adapts to each.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         SWIFT_APPROACHABLE_CONCURRENCY: "YES"
         # Big models (2 GB+) cold-specialize past the default jetsam limit on iPhone; the
         # increased-memory entitlement lets the spec complete (same as CoreAIChat / AudioChat).
