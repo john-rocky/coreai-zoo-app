@@ -41,10 +41,15 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: CoreAIZoo.entitlements
         SWIFT_VERSION: "6.0"
-        MARKETING_VERSION: "0.1"
+        # This is the unified CoreAI Zoo (supersedes the 1.0 CoreAIChat builds on the same
+        # ASC record) — 2.0 marks the rebrand + full capability set, and stays above 1.0.
+        MARKETING_VERSION: "2.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
+        # Only standard HTTPS (model downloads) = exempt encryption; declare it so TestFlight
+        # doesn't prompt for export compliance on every build.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
         INFOPLIST_KEY_CFBundleDisplayName: "CoreAI Zoo"
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "CoreAI Zoo records audio only to transcribe it on-device. Nothing leaves your device."
         INFOPLIST_KEY_NSCameraUsageDescription: "CoreAI Zoo uses the camera for on-device depth, detection, and action recognition. Frames are processed locally and never leave your device."
