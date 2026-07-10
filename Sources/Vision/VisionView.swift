@@ -13,6 +13,21 @@ struct VLChatView: View {
     @State private var input = ""
 
     var body: some View {
+        // FoundationModels' beta-seed ABI mismatch (see FMSeedGate): the VLM chat path
+        // would trap on a device whose OS seed predates the SDK, so degrade to a notice.
+        if FMSeedGate.available {
+            content
+        } else {
+            ContentUnavailableView(
+                "Update iOS to use Vision",
+                systemImage: "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90",
+                description: Text(
+                    "This build was made with a newer OS beta than this device is running. "
+                        + "Update to the latest beta to ask about images."))
+        }
+    }
+
+    private var content: some View {
         VStack(spacing: 0) {
             header
             Divider()

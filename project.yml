@@ -59,6 +59,12 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         SWIFT_APPROACHABLE_CONCURRENCY: "YES"
+        # FoundationModels' Swift ABI churns between OS 27 beta seeds (the image-Attachment
+        # and executor-channel manglings changed between iOS beta 1 and the beta 3 SDK), and
+        # App Store Connect only accepts archives from the newest beta SDK. Weak-link the
+        # framework so a device on an older seed still launches; FMSeedGate then downgrades
+        # the FM-backed features (Vision Ask, Audio Understand) to an "update iOS" notice.
+        OTHER_LDFLAGS: "-weak_framework FoundationModels"
         # Big models (2 GB+) cold-specialize past the default jetsam limit on iPhone; the
         # increased-memory entitlement lets the spec complete (same as CoreAIChat / AudioChat).
         ENABLE_APP_SANDBOX: "NO"

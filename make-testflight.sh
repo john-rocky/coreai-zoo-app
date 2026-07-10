@@ -24,9 +24,15 @@
 #   export ASC_KEY_P8=~/.appstoreconnect/private_keys/AuthKey_3ZR8BRVF9H.p8
 #   export ASC_KEY_ID=3ZR8BRVF9H
 #   export ASC_ISSUER_ID=69a6de96-8f3e-47e3-e053-5b8c7c11a4d1
-#   export DEVELOPER_DIR=/Users/$USER/Downloads/Xcode-beta.app/Contents/Developer
+#   export DEVELOPER_DIR=/Applications/Xcode-27.0.0-Beta.3.app/Contents/Developer
 #   ./make-testflight.sh                 # build number defaults to 6
-#   BUILD_NUMBER=7 ./make-testflight.sh  # or override
+#   BUILD_NUMBER=8 ./make-testflight.sh  # or override
+#
+# ⚠️ Devices on an OLDER OS beta seed than the archiving SDK dyld-crash at launch when a
+# framework's Swift manglings churn between seeds (FoundationModels did, beta 1 -> beta 3;
+# build 7 crashed on launch on beta 1 devices). The app weak-links FoundationModels and
+# gates the FM features (see FMSeedGate.swift) so a seed mismatch degrades gracefully —
+# keep that in place while the app targets OS betas.
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"

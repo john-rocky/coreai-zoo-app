@@ -110,6 +110,21 @@ struct AudioChatView: View {
     @State private var showImporter = false
 
     var body: some View {
+        // FoundationModels' beta-seed ABI mismatch (see FMSeedGate): degrade to a notice
+        // rather than trap when the OS seed predates the SDK this build was made with.
+        if FMSeedGate.available {
+            content
+        } else {
+            ContentUnavailableView(
+                "Update macOS to use Understand",
+                systemImage: "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90",
+                description: Text(
+                    "This build was made with a newer OS beta than this device is running. "
+                        + "Update to the latest beta to ask about audio."))
+        }
+    }
+
+    private var content: some View {
         VStack(spacing: 12) {
             HStack(spacing: 10) {
                 Picker("Model", selection: $model.selectedEntry) {
