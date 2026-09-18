@@ -1,14 +1,19 @@
 # CoreAI Zoo (app)
 
-One on-device app for the whole Core AI model zoo — the **shippable** product distributed via
-**TestFlight (iOS)** and a **notarized .dmg (macOS)**. It is a thin SwiftUI shell over the shared
-[`coreai-kit`](https://github.com/john-rocky/coreai-kit) engine: each capability (chat, transcribe,
-…) routes to one CoreAIKit executor, and new models reach users through CoreAIKit's **live catalog**
-(`catalog.json`) without an app update.
+One on-device app for the whole Core AI model zoo, on the App Store and as a notarized Mac build.
+It is a thin SwiftUI shell over the shared [`coreai-kit`](https://github.com/john-rocky/coreai-kit)
+engine: each capability (chat, vision, camera, audio, bench) routes to one CoreAIKit executor, and
+new models reach users through CoreAIKit's live catalog (`catalog.json`) without an app update.
 
-> Private product repo. The public model zoo (cards, conversion, knowledge, single-purpose sample
-> apps) stays in [`coreai-models-community`](https://github.com/john-rocky/coreai-model-zoo).
-> The engine/SDK lives in `coreai-kit`. This app only *composes* them.
+- iPhone / iPad: [App Store](https://apps.apple.com/app/id6780135339) ·
+  [TestFlight](https://testflight.apple.com/join/bK4P7xby)
+- Mac: [notarized .dmg](https://github.com/john-rocky/coreai-model-zoo/releases/tag/mac-2.0.9)
+- Models: [huggingface.co/mlboydaisuke](https://huggingface.co/mlboydaisuke) (the catalog's 61
+  entries are all public weights; each keeps its own license)
+
+The public model zoo (cards, conversion, knowledge, single-purpose sample apps) lives in
+[`coreai-model-zoo`](https://github.com/john-rocky/coreai-model-zoo); the engine/SDK in
+`coreai-kit`. This app only composes them.
 
 ## Why this app exists
 
@@ -34,22 +39,25 @@ coreai-zoo-app           (this repo)    →  thin multiplatform shell → TestFl
 
 ## Status
 
-| Tab | Capability | Models |
+| Tab | Capability | Gate models |
 |---|---|---|
-| **Chat** | streaming chat + VLM | catalog `chat` entries (Gemma 4, Qwen3.5, …) |
-| **Transcribe** | speech → text | Whisper large-v3-turbo (`KitWhisperModel`) |
-| **More** | roadmap | TTS · Depth · Detection · Super-Res · OCR (Phase 2) |
+| Chat | streaming chat, Think switch on reasoning models | catalog `chat` entries (Qwen3, Qwen3.5, LFM2.5, Granite 4, MiniCPM5, Nemotron, Gemma 4, …) |
+| Vision | ask about a photo (VLM); Read (OCR) on Mac | Qwen3-VL, MiniCPM-V, LFM2.5-VL |
+| Camera | Depth · Detect · Action · Upscale on the live feed | Depth Anything 3, YOLOX / RF-DETR, V-JEPA 2, ADCSR |
+| Audio | Speak (TTS) · Transcribe (ASR); Music and Understand on Mac | VoxCPM, Whisper large-v3-turbo, Nemotron ASR |
+| Bench | fixed protocol → load / prefill / decode tok/s → shareable blob | any chat model |
+| Tools (Mac) | diffusion language models | LLaDA |
 
-This is **Phase 1** (chat + transcribe). See the roadmap tab / the plan below.
+iPhone shows the first five tabs; Tools and More are macOS-only.
 
 ## Build
 
-Requires **Xcode 27 beta** and [xcodegen](https://github.com/yonaskolb/XcodeGen). Clone
+Requires **Xcode 27** and [xcodegen](https://github.com/yonaskolb/XcodeGen). Clone
 `coreai-kit` as a **sibling** of this repo (the project references it at `../coreai-kit`):
 
 ```sh
 git clone https://github.com/john-rocky/coreai-kit          # ../coreai-kit
-git clone <this repo>                                        # ../coreai-zoo-app
+git clone https://github.com/john-rocky/coreai-zoo-app       # ../coreai-zoo-app
 cd coreai-zoo-app
 xcodegen generate
 open CoreAIZoo.xcodeproj      # set your team if needed, then Run (Release) on iPhone or Mac
@@ -59,12 +67,10 @@ Models download from the Hugging Face Hub on first use — no Python, nothing le
 
 ## Roadmap
 
-- **Phase 1** — shell + Chat + Transcribe (Whisper). ← now
-- **Phase 2** — TTS (VoxCPM/Kokoro), Depth, Detection, Super-Resolution, OCR/segmentation/search.
-- **Phase 3** — macOS dmg packaging (notarized) with Mac-only large models unlocked.
-
-Heavy Python-backed generators (image/video/3D: FLUX.2, LTX-Video, TripoSplat) stay as separate
-Mac apps — they don't fold cleanly into the Swift shell.
+- Read (OCR) on iPhone (the catalog now has iOS OCR variants).
+- Surfaces for the catalog kinds that have none yet: diarization, forecasting, moderation,
+  separation, text normalization.
+- Heavy Python-backed generators (image/video/3D) stay separate Mac apps.
 
 ## License
 
