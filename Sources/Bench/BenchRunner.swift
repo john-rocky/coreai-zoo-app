@@ -203,20 +203,33 @@ final class BenchRunner {
 
     // MARK: - Submission
 
+    /// Issue title, e.g. "[bench] iPhone18,1 · qwen3.5-0.8b" — the template's default is the
+    /// bare "[bench] " prefix, so without this every submission lands with the same title
+    /// (zoo #24). Device identifier + catalog id are what the aggregator keys rows on.
+    static func issueTitle(for blob: BenchBlob) -> String {
+        "[bench] \(blob.device.model_identifier) · \(blob.model.id)"
+    }
+
     /// Prefilled bench-result issue on the zoo repo; nil when the blob would overflow the URL
-    /// (the caller falls back to `templateURL` with the blob on the clipboard).
-    static func submissionURL(blobJSON: String) -> URL? {
+    /// (the caller falls back to `templateURL(for:)` with the blob on the clipboard).
+    static func submissionURL(blob: BenchBlob, blobJSON: String) -> URL? {
         var comps = URLComponents(string: "https://github.com/john-rocky/coreai-model-zoo/issues/new")!
         comps.queryItems = [
             URLQueryItem(name: "template", value: "bench-result.yml"),
+            URLQueryItem(name: "title", value: issueTitle(for: blob)),
             URLQueryItem(name: "blob", value: "```json\n\(blobJSON)\n```"),
         ]
         guard let url = comps.url, url.absoluteString.count < 7500 else { return nil }
         return url
     }
 
-    static let templateURL = URL(
-        string: "https://github.com/john-rocky/coreai-model-zoo/issues/new?template=bench-result.yml")!
+    /// Template-only fallback (blob on the clipboard); still carries the title.
+    static func templateURL(for blob: BenchBlob?) -> URL {
+        var comps = URLComponents(string: "https://github.com/john-rocky/coreai-model-zoo/issues/new")!
+        comps.queryItems = [URLQueryItem(name: "template", value: "bench-result.yml")]
+        if let blob { comps.queryItems?.append(URLQueryItem(name: "title", value: issueTitle(for: blob))) }
+        return comps.url!
+    }
 
     static func copyToPasteboard(_ text: String) {
         #if canImport(UIKit)

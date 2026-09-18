@@ -106,8 +106,9 @@ struct BenchView: View {
                 Button {
                     BenchRunner.copyToPasteboard(runner.blobJSON)
                     copied = true
-                    openURL(BenchRunner.submissionURL(blobJSON: runner.blobJSON)
-                        ?? BenchRunner.templateURL)
+                    openURL(runner.blob.flatMap {
+                        BenchRunner.submissionURL(blob: $0, blobJSON: runner.blobJSON)
+                    } ?? BenchRunner.templateURL(for: runner.blob))
                 } label: {
                     Label("Submit on GitHub", systemImage: "arrow.up.forward.app")
                         .frame(maxWidth: .infinity)
