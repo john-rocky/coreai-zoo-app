@@ -41,6 +41,11 @@ struct ChatView: View {
                 Button("Send", action: send)
                     .disabled(model.status != .ready || input.isEmpty)
             }
+            if model.showThinkingToggle {
+                Toggle("Think", isOn: $model.thinkingEnabled)
+                    .toggleStyle(.button)
+                    .disabled(model.status == .generating)
+            }
             Button("New") { model.newChat() }
                 .disabled(model.isBusy)
         }

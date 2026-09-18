@@ -32,8 +32,14 @@ final class ChatModel {
     var stats = GenerationStats()
     var entries: [CatalogEntry] = []
     var selectedEntry: CatalogEntry?
+    /// Reasoning on/off for thinking models (catalog `thinking: true`). Off renders the closed
+    /// think block, so the whole response budget goes to the visible answer.
+    var thinkingEnabled = true
 
     private var session: ChatSession?
+
+    /// The toggle only means something on models whose template honours it.
+    var showThinkingToggle: Bool { selectedEntry?.thinking == true }
 
     var isBusy: Bool {
         switch status {
@@ -61,6 +67,11 @@ final class ChatModel {
         session = nil
         var config = ChatSession.Configuration()
         config.engineVariant = Self.engineVariant(for: entry.engine)
+        // 2.0.1: answers were cut at the kit's 2048-token default — thinking models spend most
+        // of it inside <think>. Let every turn run to what the bundle's context leaves after
+        // the prompt (the session clamps Int.max to max_context_length - prompt).
+        config.maxResponseTokens = Int.max
+        config.enableThinking = thinkingEnabled ? nil : false
         Task {
             do {
                 let session = try await ChatSession(model: model, configuration: config) { progress in
@@ -103,6 +114,7 @@ final class ChatModel {
 
         Task {
             do {
+                await session.setThinking(thinkingEnabled ? nil : false)
                 for try await event in await session.streamResponse(to: trimmed) {
                     switch event {
                     case .response(let delta):
