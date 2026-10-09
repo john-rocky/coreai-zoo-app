@@ -115,7 +115,7 @@ bundle as iOS (`gpu-pipelined/...`), prompt "Reply with one short sentence: what
 
 On the phone (~40–60 tok/s) the same drain is 30–50 s of "Generating…" after a short answer,
 which the user cancelled by hand. With the 2.0.1 cap raised to the context it would have grown.
-Fix: fork worktree `~/code/coreai/coreai-models-fork-stopfix`, branch `fix/stop-sequence-no-drain`,
+Fix: a worktree of the coreai-models fork, branch `fix/stop-sequence-no-drain`,
 commit dad1f64 on top of 0.2.4-zoo, tag `0.2.5-zoo`, pushed 2026-09-18 (branch + tag, `zoo-0.4`
 fast-forwarded). Kit pinned to `exact: "0.2.5-zoo"` (kit e25f7ad); app 416daa6 = 2.0.1 Chat
 changes. Kit and app commits are local (not pushed). Dev build 2.0.1 (`com.daisukemajima.coreaizoo`)
