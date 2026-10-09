@@ -1,0 +1,34 @@
+# Screenshot automation project — NOT the shipping project. Includes project.yml and adds a UI
+# test bundle that drives the app on a device and attaches full-resolution screenshots.
+include:
+  - project.yml
+name: CoreAIZooShots
+targets:
+  CoreAIZooUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "27.0"
+    sources:
+      - path: UITests
+    dependencies:
+      - target: CoreAIZoo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.daisukemajima.coreaizoo.uitests
+        DEVELOPMENT_TEAM: MFN25KNUGJ
+        CODE_SIGN_STYLE: Automatic
+        TEST_TARGET_NAME: CoreAIZoo
+        GENERATE_INFOPLIST_FILE: "YES"
+        SWIFT_VERSION: "6.0"
+schemes:
+  Shots:
+    build:
+      targets:
+        CoreAIZoo: all
+        CoreAIZooUITests: [test]
+    run:
+      config: Release
+    test:
+      config: Release
+      targets:
+        - CoreAIZooUITests

@@ -11,3 +11,9 @@ xcuserdata/
 # SwiftPM
 .swiftpm/
 Package.resolved
+# Local run logs (`... | tee _<name>.log`)
+_*.log
+# Python bytecode
+__pycache__/
+# Private working notes
+notes/

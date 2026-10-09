@@ -63,7 +63,16 @@ xcodegen generate
 open CoreAIZoo.xcodeproj      # set your team if needed, then Run (Release) on iPhone or Mac
 ```
 
-Models download from the Hugging Face Hub on first use — no Python, nothing leaves the device.
+Models download from the Hugging Face Hub on first use. The model list comes from a catalog JSON
+file that the app fetches from GitHub, with a built-in copy for offline use. No Python is needed.
+Your text, audio and images never leave the device.
+
+## Release tooling
+
+- `make-testflight.sh` uploads an iOS build to TestFlight. `make-macos-dmg.sh` makes the notarized Mac `.dmg`. Both read an App Store Connect API key from `ASC_KEY_P8`, `ASC_KEY_ID` and `ASC_ISSUER_ID`.
+- `asc_publish_build.py`, `asc_submit_version.py` and `asc_upload_screenshots.py` do the App Store Connect steps after an upload: the public TestFlight group, the App Store submission, the screenshots. They read the same variables and need `pyjwt` and `cryptography`.
+- `project-shots.yml` and `UITests/` take the store screenshots on a real iPhone: run `xcodegen generate --spec project-shots.yml`, then test the `Shots` scheme.
+- `docs/release/` holds the release runbook and a device smoke record. `docs/` holds the App Store and TestFlight text.
 
 ## Roadmap
 
