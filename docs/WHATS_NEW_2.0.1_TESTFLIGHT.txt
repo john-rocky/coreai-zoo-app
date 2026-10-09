@@ -1,0 +1,7 @@
+Build 10 — 2.0.1.
+
+- Chat replies no longer stop early: each reply can use the model's full context window.
+- Think switch (models with reasoning output, e.g. Qwen3): off sends the whole reply budget to the visible answer.
+- Fixed: on several models "Generating…" continued after the reply had ended until Stop was pressed.
+
+Please report anything that fails to load or generate at https://github.com/john-rocky/coreai-model-zoo/issues (Model / runtime issue).

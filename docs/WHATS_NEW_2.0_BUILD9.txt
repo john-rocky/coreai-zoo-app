@@ -1,0 +1,7 @@
+Build 9 — rebuilt with the Xcode 27 Release Candidate for iOS 27 RC and later seeds.
+
+- FoundationModels is weak-linked and gated: on a seed the SDK does not match, Vision Ask and Audio Understand show an "update iOS" notice instead of crashing.
+- Chat, Vision, Audio, Depth, Detect, Action, Upscale and Bench tabs; models download on first use and run fully offline.
+- Start with Qwen3-0.6B (454 MB) for the fastest first run. Larger models need the free space they state.
+
+Please report anything that fails to load or generate at https://github.com/john-rocky/coreai-model-zoo/issues (Model / runtime issue).

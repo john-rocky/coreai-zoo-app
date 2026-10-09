@@ -1,0 +1,2 @@
+Chat replies no longer stop early: each reply can use the model's full context window, and a Think switch turns reasoning output off on models that support it, so the whole reply is the answer.
+Fixed: on several models, "Generating…" continued after the reply had ended until Stop was pressed.

@@ -1,0 +1,43 @@
+SUBTITLE (<=30): Open AI models, on-device
+
+PROMOTIONAL TEXT (<=170):
+Run open AI models on your device: chat, vision, speech, depth and detection. Download once, works offline, nothing leaves your phone.
+
+KEYWORDS (<=100):
+on-device,offline,LLM,AI chat,Core ML,whisper,transcribe,vision,OCR,depth,object detection,local AI
+
+SUPPORT URL: https://github.com/john-rocky/coreai-model-zoo/issues
+MARKETING URL: https://github.com/john-rocky/coreai-model-zoo
+COPYRIGHT: 2026 Daisuke Majima
+CATEGORY: Developer Tools / Utilities
+PRICE: Free, all 175 territories
+RELEASE: Manual after approval
+
+DESCRIPTION (<=4000):
+CoreAI Zoo puts the open-weight AI model zoo on your iPhone, iPad and Mac. Pick a model, download it once, and run it entirely on your device. No account, no server, and nothing you type, say or photograph ever leaves the device.
+
+CHAT
+Stream answers from open language models such as Qwen3, Gemma, LFM2.5, Granite and Mistral, from 0.6B to 30B+ parameters depending on your device's memory. Vision-language models (Qwen3-VL, MiniCPM-V, LFM2.5-VL) answer questions about your photos.
+
+VISION
+Ask questions about an image, read text with on-device OCR, and describe what the camera sees.
+
+AUDIO
+Transcribe speech with Whisper large-v3-turbo, Parakeet and Qwen3-ASR. Talk to an audio-understanding model, generate speech with Kokoro and VoxCPM, and try on-device music generation.
+
+CAMERA
+Live depth estimation, object detection (YOLOX, RF-DETR), action recognition and super-resolution on the camera feed.
+
+TOOLS
+Experimental models such as diffusion-based language models.
+
+BENCH
+Measure load time, tokens per second and memory for any chat model on your own hardware.
+
+HOW IT WORKS
+Every model runs through Core ML on Apple silicon. Weights are downloaded from the Hugging Face Hub on first use over HTTPS, then cached, so the app works offline afterwards. One model is resident at a time to stay within memory limits. New models arrive through a live catalog without an app update.
+
+GETTING STARTED
+Start with Qwen3-0.6B (454 MB) for the fastest first run. Larger models state the free space and memory they need; a recent iPhone Pro or an Apple silicon Mac runs the mid-size ones comfortably.
+
+Model weights follow their own licenses, listed on each model's Hugging Face page. The app itself is BSD-3-Clause and part of the open CoreAI model zoo. Report issues and request models at github.com/john-rocky/coreai-model-zoo.
