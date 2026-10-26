@@ -16,6 +16,9 @@ final class DetectModel {
     /// Detection entries in the catalog; the picker restarts the feed on a new choice.
     var entries: [CatalogEntry] = []
     var selectedEntry: CatalogEntry?
+    /// The selected model is not on the device yet: the view offers a Download button with its
+    /// size instead of fetching it on its own. A downloaded model starts by itself.
+    var needsDownload = false
 
     private var feed: CameraFeed?
     private var started = false
@@ -34,8 +37,13 @@ final class DetectModel {
         Task { await start() }
     }
 
-    func start() async {
+    func start(download: Bool = false) async {
         guard !started, let entry = selectedEntry else { return }
+        needsDownload = !download && !entry.isDownloaded
+        if needsDownload {
+            status = "Not downloaded yet"
+            return
+        }
         started = true
         do {
             // Same gesture as the model card: the catalog id resolves the bundle.
@@ -79,6 +87,10 @@ struct DetectView: View {
                     }
                 }
                 .fixedSize()
+                if model.needsDownload, let entry = model.selectedEntry {
+                    Button(entry.downloadTitle) { Task { await model.start(download: true) } }
+                        .buttonStyle(.borderedProminent)
+                }
                 Spacer()
             }
             .padding(.horizontal, 12)

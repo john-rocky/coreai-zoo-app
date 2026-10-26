@@ -18,10 +18,13 @@ struct CameraView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Mode", selection: $mode) {
-                ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+            HStack {
+                Picker("Mode", selection: $mode) {
+                    ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                DownloadsButton()
             }
-            .pickerStyle(.segmented)
             .padding(10)
             Divider()
             // `id(mode)` tears down the previous mode's view (and its CameraFeed) on switch.

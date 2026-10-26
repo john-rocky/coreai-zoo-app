@@ -28,10 +28,13 @@ struct AudioView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Mode", selection: $mode) {
-                ForEach(Self.modes) { Text($0.rawValue).tag($0) }
+            HStack {
+                Picker("Mode", selection: $mode) {
+                    ForEach(Self.modes) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                DownloadsButton()
             }
-            .pickerStyle(.segmented)
             .padding(10)
             Divider()
             switch mode {

@@ -7,15 +7,19 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ModelPickerBar(
-                entries: model.entries,
-                selection: $model.selectedEntry,
-                isBusy: model.isBusy,
-                statusText: model.status.label,
-                downloadFraction: model.downloadFraction,
-                loadTitle: model.status == .idle ? "Download & Load" : "Reload"
-            ) {
-                model.load()
+            HStack(spacing: 0) {
+                ModelPickerBar(
+                    entries: model.entries,
+                    selection: $model.selectedEntry,
+                    isBusy: model.isBusy,
+                    statusText: model.status.label,
+                    downloadFraction: model.downloadFraction,
+                    loadTitle: model.status == .idle ? "Download & Load" : "Reload"
+                ) {
+                    model.load()
+                }
+                DownloadsButton()
+                    .padding(.trailing, 12)
             }
             Divider()
             ChatTranscriptView(bubbles: model.bubbles)

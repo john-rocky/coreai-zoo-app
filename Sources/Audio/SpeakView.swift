@@ -46,16 +46,24 @@ final class SpeakModel {
         if case .downloading(let f) = status { return f }
         return nil
     }
+    /// Why the selected voice cannot run on this device, nil when it can. Known before any
+    /// download, so the voice is marked instead of failing with a Core AI error after it.
+    var unavailableReason: String? {
+        selectedEntry.flatMap { KitSpeaker.unavailableReason(for: $0) }
+    }
 
     /// Live catalog with the built-in snapshot as offline fallback.
     func loadCatalog() async {
         guard entries.isEmpty else { return }
         entries = await ModelCatalog.load().available(.tts)
-        if selectedEntry == nil { selectedEntry = entries.first }
+        if selectedEntry == nil {
+            selectedEntry =
+                entries.first { KitSpeaker.unavailableReason(for: $0) == nil } ?? entries.first
+        }
     }
 
     func load() {
-        guard !isBusy, let entry = selectedEntry else { return }
+        guard !isBusy, unavailableReason == nil, let entry = selectedEntry else { return }
         status = .loading
         speaker = nil
         Task {
@@ -105,14 +113,16 @@ struct SpeakView: View {
             HStack(spacing: 10) {
                 Picker("Voice", selection: $model.selectedEntry) {
                     ForEach(model.entries) { entry in
-                        Text(entry.name).tag(Optional(entry))
+                        Text(KitSpeaker.unavailableReason(for: entry) == nil
+                             ? entry.name : "\(entry.name) (not on this device)")
+                            .tag(Optional(entry))
                     }
                 }
                 .fixedSize()
                 .disabled(model.isBusy)
 
                 Button(model.status == .idle ? "Download & Load" : "Reload") { model.load() }
-                    .disabled(model.isBusy)
+                    .disabled(model.isBusy || model.unavailableReason != nil)
 
                 if let fraction = model.downloadFraction {
                     ProgressView(value: fraction).frame(width: 90)
@@ -125,6 +135,12 @@ struct SpeakView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 Spacer()
+            }
+            if let reason = model.unavailableReason {
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             TextEditor(text: $input)
