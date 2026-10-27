@@ -2,11 +2,12 @@
 
 Written 2026-09-01. Every step below was executed against Xcode 27 **beta 5
 (27A5237l)** on 2026-09-01 and worked; on RC day, substitute the RC and trace top to bottom.
-Last shipped build: **10** (2.0.1), uploaded 2026-09-18 with RC 27A266a (build 9 = 2.0, App Store since 09-18; build 8: 07-10, beta 3, expires ~10-08).
+Last shipped build: **11** (2.0.2), uploaded 2026-10-27 with RC 27A266a (build 10 = 2.0.1, on the App Store; build 9 = 2.0, App Store since 09-18; build 8: 07-10, beta 3, expires ~10-08).
 
-Traced again with the RC `27A266a` for build 9 (2.0, 2026-09-14) and build 10 (2.0.1, 2026-09-18).
-Both times the two sentinels were present and the 151 FoundationModels symbols matched the beta 5
-list, so `Sources/FMSeedGate.swift` did not change.
+Traced again with the RC `27A266a` for build 9 (2.0, 2026-09-14), build 10 (2.0.1, 2026-09-18) and
+build 11 (2.0.2, 2026-10-27). Each time the two sentinels were present and the app referenced 151
+FoundationModels symbols (builds 9 and 10: the same list as beta 5), so `Sources/FMSeedGate.swift`
+did not change.
 
 ## 0. Before RC day (do once, any time)
 
@@ -77,7 +78,8 @@ so the "newest beta/RC only" rule holds. Listing builds without the web UI:
 (07-09) was never added to it, so testers on https://testflight.apple.com/join/bK4P7xby ran
 build 7 (07-08, pre weak-link) for two months. After every upload, run
 `python asc_publish_build.py <build> --whats-new <file>` (any Python with pyjwt + cryptography;
-earlier texts: `docs/WHATS_NEW_2.0_BUILD9.txt`, `docs/WHATS_NEW_2.0.1_TESTFLIGHT.txt`)
+earlier texts: `docs/WHATS_NEW_2.0_BUILD9.txt`, `docs/WHATS_NEW_2.0.1_TESTFLIGHT.txt`,
+`docs/WHATS_NEW_2.0.2_TESTFLIGHT.txt`)
 — it waits for processing, adds the build to the group, sets What to Test, and prints the
 group's builds and the beta-review state. It does not submit the build for beta review (§8).
 
@@ -190,3 +192,39 @@ after its beta review: create a `betaAppReviewSubmission` for the build (none of
 this). Build 10's went to externalBuildState WAITING_FOR_BETA_REVIEW; build 9's was approved within
 seconds, so check `buildBetaDetail` later. After App Store approval, release 2.0.1 by hand (ASC button
 or appStoreVersionReleaseRequests).
+
+## 9. 2.0.2 (build 11) — 2026-10-27
+
+Why: a user report. (a) The Camera tab downloaded Depth Anything as soon as it opened, and the app had
+no way to delete a downloaded model. (b) On an iPhone that is not an iPhone 17 model, VoxCPM2 failed
+after its 4.3 GB download with "AIModelError error 0": its iOS files are `*.h18p.aimodelc` only.
+Fixed: a "Downloaded models" list (the button next to the Chat, Camera and Audio pickers) with sizes
+and a delete; Depth, Detect and Action show "Not downloaded yet" and a "Download <size>" button
+instead of downloading on open; Speak marks the voices this device cannot run and says why before any
+download (coreai-kit `KitSpeaker.unavailableReason(for:)`). On a phone other than an iPhone 17 model
+none of the live catalog's four iOS voices runs in 2.0.2.
+Code: coreai-kit `3a82d60` (branch `ane-variant`: c4fc800 + 3a82d60 on e25f7ad) and this repo's
+`e7e990d` (7f3be69, c3b292d, 9966545, e7e990d on 5c7e4b2). The archive builds against
+`../coreai-kit`, which must be on `ane-variant` at 3a82d60 or later: the app calls
+`KitSpeaker.unavailableReason(for:)`.
+
+Device check before upload: `UITests/DownloadsTests` on the iPhone 18 Pro (iOS 27.2 24B5099f), dev
+build (`com.daisukemajima.coreaizoo`), 2026-10-27 12:08–12:11 JST: 4 passed, 1 skipped (the speak
+test, which needs an iPhone 17 model). The first run (12:00–12:02) found the Speak row broken on that
+phone: the `.fixedSize()` voice Picker showed "VoxCPM 0.5B (not on this device)" and squeezed
+"Download & Load" to a letter or two per line; c3b292d picks the voice from a Menu, as CoreAIKitUI's
+ModelPickerBar does. The runner asked for the phone's passcode once ("Enable UI Automation"); the
+run about seven minutes later did not ask again. The camera permission alert outlives an app
+relaunch and blocks the next test's taps until it is answered.
+
+Traced §1–§4 again with the RC `27A266a`: sentinels 1/2 present, 151 FoundationModels symbols.
+`BUILD_NUMBER=11 ./make-testflight.sh`: the archive's Info.plist read 2.0.2 / 11 /
+`com.daisukemajima.CoreAIChat`; UPLOAD SUCCEEDED at 12:18 JST.
+
+Submission: `asc_submit_version.py 2.0.2 11 --whats-new docs/WHATS_NEW_2.0.2.txt --go` (JST
+12:18–12:21): build 11 VALID at 12:20; version 2.0.2 created (MANUAL), build attached, What's New set
+(397 chars); review submitted 2026-10-27T03:21:00Z → version WAITING_FOR_REVIEW.
+TestFlight: `asc_publish_build.py 11 --whats-new docs/WHATS_NEW_2.0.2_TESTFLIGHT.txt` added build 11
+to Public Preview and set What to Test; the beta review was submitted at 2026-10-27T03:21:26Z
+(`POST /betaAppReviewSubmissions` with the build) → externalBuildState WAITING_FOR_BETA_REVIEW.
+After App Store approval, release 2.0.2 by hand (ASC button or appStoreVersionReleaseRequests).
