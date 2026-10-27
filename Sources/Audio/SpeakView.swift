@@ -111,17 +111,34 @@ struct SpeakView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 10) {
-                Picker("Voice", selection: $model.selectedEntry) {
+                // A Menu (not a Picker), as in CoreAIKitUI's ModelPickerBar: the trigger shows
+                // just the voice name and truncates when narrow, while the menu marks the voices
+                // this device cannot run. A `.fixedSize()` Picker showing the marked name squeezed
+                // the Load button to a letter or two per line on an iPhone.
+                Menu {
                     ForEach(model.entries) { entry in
-                        Text(KitSpeaker.unavailableReason(for: entry) == nil
-                             ? entry.name : "\(entry.name) (not on this device)")
-                            .tag(Optional(entry))
+                        Button {
+                            model.selectedEntry = entry
+                        } label: {
+                            if entry == model.selectedEntry {
+                                Label(Self.menuTitle(for: entry), systemImage: "checkmark")
+                            } else {
+                                Text(Self.menuTitle(for: entry))
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(model.selectedEntry?.name ?? "Voice").lineLimit(1)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .fixedSize()
                 .disabled(model.isBusy)
 
                 Button(model.status == .idle ? "Download & Load" : "Reload") { model.load() }
+                    .fixedSize()
                     .disabled(model.isBusy || model.unavailableReason != nil)
 
                 if let fraction = model.downloadFraction {
@@ -168,5 +185,11 @@ struct SpeakView: View {
         .frame(minWidth: 460, minHeight: 260)
         #endif
         .task { await model.loadCatalog() }
+    }
+
+    /// The voice's name in the menu, marked when this device cannot run it.
+    static func menuTitle(for entry: CatalogEntry) -> String {
+        KitSpeaker.unavailableReason(for: entry) == nil
+            ? entry.name : "\(entry.name) (not on this device)"
     }
 }
