@@ -1,0 +1,8 @@
+Build 11 — 2.0.2.
+
+- Downloaded models: a list, opened from Chat, Camera and Audio, of the models on this device with their sizes, and a delete.
+- Depth, Detect and Action no longer download on open: a model that is not on the device says "Not downloaded yet" and offers a Download button with its size.
+- Speak marks each voice this device cannot run and says why, before any download. For now, voices run only on the iPhone 17 models.
+- Known: in Chat, Nemotron-3-Nano 4B and Gemma 4 E2B, and in Vision, LFM2.5-VL and North Micro Vision, download and then fail to load on iPhones other than the 17 models.
+
+Please report anything that fails to load or generate at https://github.com/john-rocky/coreai-model-zoo/issues (Model / runtime issue).

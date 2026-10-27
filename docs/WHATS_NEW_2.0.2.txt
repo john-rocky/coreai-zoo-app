@@ -1,0 +1,3 @@
+Downloaded models: a new list, opened from Chat, Camera and Audio, shows each model on this device with its size and lets you delete it.
+Depth, Detect and Action no longer download a model when you open them: they show its size and a Download button first.
+Speak marks each voice this device cannot run and says why, before anything is downloaded. For now, voices run only on the iPhone 17 models.
