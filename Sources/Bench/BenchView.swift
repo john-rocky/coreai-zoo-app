@@ -28,8 +28,10 @@ struct BenchView: View {
         }
         .task {
             if entries.isEmpty {
-                entries = await ModelCatalog.load().available(.chat)
-                if selected == nil { selected = entries.first }
+                entries = await ZooCatalog.load().available(.chat)
+                if selected == nil {
+                    selected = entries.first { $0.unavailableReason == nil } ?? entries.first
+                }
             }
         }
         #if os(macOS)
@@ -45,12 +47,20 @@ struct BenchView: View {
             HStack {
                 Picker("Model", selection: $selected) {
                     ForEach(entries) { m in
-                        Text("\(m.name)\(sizeSuffix(m))").tag(Optional(m))
+                        Text(m.unavailableReason == nil
+                             ? "\(m.name)\(sizeSuffix(m))" : "\(m.name) (not on this device)")
+                            .tag(Optional(m))
                     }
                 }
                 .pickerStyle(.menu)
                 .disabled(runner.running)
+                .accessibilityIdentifier("bench.modelPicker")
                 Spacer()
+            }
+            if let reason = selected?.unavailableReason {
+                Text(reason)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("bench.unavailableReason")
             }
             Button {
                 guard let selected else { return }
@@ -60,7 +70,8 @@ struct BenchView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(runner.running || selected == nil)
+            .disabled(runner.running || selected == nil || selected?.unavailableReason != nil)
+            .accessibilityIdentifier("bench.run")
         }
         .padding(12)
         .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 16))

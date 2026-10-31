@@ -24,7 +24,7 @@ final class DownloadsModel {
     var totalBytes: Int64 { repos.reduce(0) { $0 + $1.bytes } }
 
     func refresh() async {
-        let entries = await ModelCatalog.load().available()
+        let entries = await ZooCatalog.load().available()
         let root = ModelStore.default.directory
         repos = await Task.detached { Self.scan(root: root, entries: entries) }.value
         loading = false

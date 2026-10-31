@@ -41,6 +41,10 @@ final class ChatModel {
     /// The toggle only means something on models whose template honours it.
     var showThinkingToggle: Bool { selectedEntry?.thinking == true }
 
+    /// Why the selected model has no bundle for this device (an iPhone of another generation
+    /// than the one its iPhone files were compiled for), from the catalog alone; nil otherwise.
+    var unavailableReason: String? { selectedEntry?.unavailableReason }
+
     var isBusy: Bool {
         switch status {
         case .downloading, .loading, .warming, .generating: return true
@@ -53,26 +57,34 @@ final class ChatModel {
         return nil
     }
 
-    /// Live catalog with the built-in snapshot as offline fallback.
+    /// Live catalog with the built-in snapshot as offline fallback (`ZooCatalog`). The first
+    /// model this device can run is selected.
     func loadCatalog() async {
         guard entries.isEmpty else { return }
-        entries = await ModelCatalog.load().available(.chat)
-        if selectedEntry == nil { selectedEntry = entries.first }
+        entries = await ZooCatalog.load().available(.chat)
+        if selectedEntry == nil {
+            selectedEntry = entries.first { $0.unavailableReason == nil } ?? entries.first
+        }
     }
 
-    func load() {
-        guard !isBusy, let entry = selectedEntry, let model = entry.modelID else { return }
+    @discardableResult
+    func load() -> Task<Void, Never>? {
+        guard !isBusy, unavailableReason == nil, let entry = selectedEntry,
+            let model = entry.modelID
+        else { return nil }
         status = .loading
         bubbles = []
         session = nil
         var config = ChatSession.Configuration()
-        config.engineVariant = Self.engineVariant(for: entry.engine)
+        // The variant's own engine hint when it names one: LFM3 1.7B's iPhone bundle is the
+        // static Neural Engine form while its entry's "pipelined" is the Mac bundle's.
+        config.engineVariant = Self.engineVariant(for: entry.resolvedEngine)
         // 2.0.1: answers were cut at the kit's 2048-token default — thinking models spend most
         // of it inside <think>. Let every turn run to what the bundle's context leaves after
         // the prompt (the session clamps Int.max to max_context_length - prompt).
         config.maxResponseTokens = Int.max
         config.enableThinking = thinkingEnabled ? nil : false
-        Task {
+        return Task {
             do {
                 let session = try await ChatSession(model: model, configuration: config) { progress in
                     Task { @MainActor in
@@ -94,7 +106,7 @@ final class ChatModel {
     /// Map the catalog's optional engine hint to an EngineVariant. Zoo decode-pipelined ports
     /// carry "sequential" (the generic pipelined path SIGTRAPs on them); official-recipe bundles
     /// leave it nil → .auto (the runtime picks the fastest compatible engine).
-    private static func engineVariant(for hint: String?) -> EngineVariant {
+    static func engineVariant(for hint: String?) -> EngineVariant {
         switch hint {
         case "sequential": return .sequential
         case "pipelined": return .pipelined
@@ -103,16 +115,17 @@ final class ChatModel {
         }
     }
 
-    func send(_ text: String) {
-        guard let session, status == .ready else { return }
+    @discardableResult
+    func send(_ text: String) -> Task<Void, Never>? {
+        guard let session, status == .ready else { return nil }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return nil }
 
         bubbles.append(ChatBubble(role: .user, content: trimmed))
         bubbles.append(ChatBubble(role: .assistant, isStreaming: true))
         status = .generating
 
-        Task {
+        return Task {
             do {
                 await session.setThinking(thinkingEnabled ? nil : false)
                 for try await event in await session.streamResponse(to: trimmed) {
@@ -143,5 +156,16 @@ final class ChatModel {
         guard let session else { return }
         bubbles = []
         Task { await session.reset() }
+    }
+
+    /// `newChat()`, awaited (the scripted run starts every question from an empty history).
+    func resetChat() async {
+        bubbles = []
+        await session?.reset()
+    }
+
+    /// The loaded bundle's context length and this turn's stats, for the scripted run.
+    var sessionContextLength: Int? {
+        get async { await session?.maxContextLength }
     }
 }

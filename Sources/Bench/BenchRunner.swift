@@ -39,7 +39,7 @@ struct BenchBlob: Codable {
         var id: String
         var hf_repo: String
         var bundle: String            // catalog variant path
-        var engine_hint: String       // catalog engine hint ("pipelined" / "auto" / …)
+        var engine_hint: String       // this platform's engine hint: the variant's, else the entry's
     }
     struct BenchProtocol: Codable {
         var name: String              // "zoo-chat-v1"
@@ -179,7 +179,7 @@ final class BenchRunner {
                     build: info?["CFBundleVersion"] as? String ?? "unknown"),
                 model: BenchBlob.Model(
                     id: entry.id, hf_repo: entry.repo,
-                    bundle: entry.variant?.path ?? "", engine_hint: entry.engine ?? "auto"),
+                    bundle: entry.variant?.path ?? "", engine_hint: entry.resolvedEngine ?? "auto"),
                 benchProtocol: BenchBlob.BenchProtocol(
                     name: Self.protocolName, prompt: Self.prompt, max_tokens: Self.maxTokens,
                     temperature: 0, chunk_threshold: chunkThreshold,
