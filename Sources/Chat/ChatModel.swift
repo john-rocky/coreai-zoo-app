@@ -126,26 +126,38 @@ final class ChatModel {
         status = .generating
 
         return Task {
+            var reply = ReplyText()
             do {
                 await session.setThinking(thinkingEnabled ? nil : false)
                 for try await event in await session.streamResponse(to: trimmed) {
                     switch event {
                     case .response(let delta):
-                        bubbles[bubbles.count - 1].content += delta
+                        reply.addResponse(delta)
+                        show(reply)
                     case .thinking(let delta):
-                        bubbles[bubbles.count - 1].thinking += delta
+                        reply.addThinking(delta)
+                        show(reply)
                     case .stats(let s):
                         stats = s
                     case .complete:
-                        break
+                        reply.finish()
+                        show(reply)
                     }
                 }
             } catch {
                 status = .error(error.localizedDescription)
             }
+            reply.finish()
+            show(reply)
             bubbles[bubbles.count - 1].isStreaming = false
             if status == .generating { status = .ready }
         }
+    }
+
+    /// The last bubble shows the reply as `ReplyText` has split it so far.
+    private func show(_ reply: ReplyText) {
+        bubbles[bubbles.count - 1].content = reply.content
+        bubbles[bubbles.count - 1].thinking = reply.thinking
     }
 
     func stop() {
