@@ -2,7 +2,7 @@
 
 Written 2026-09-01. Every step below was executed against Xcode 27 **beta 5
 (27A5237l)** on 2026-09-01 and worked; on RC day, substitute the RC and trace top to bottom.
-Last shipped build: **11** (2.0.2), uploaded 2026-10-27 with RC 27A266a (build 10 = 2.0.1, on the App Store; build 9 = 2.0, App Store since 09-18; build 8: 07-10, beta 3, expires ~10-08).
+Last shipped build: **12** (2.0.3), uploaded 2026-11-01 with RC 27A266a (build 11 = 2.0.2, on the App Store; build 10 = 2.0.1; build 9 = 2.0, App Store since 09-18; build 8: 07-10, beta 3, expires ~10-08).
 
 Traced again with the RC `27A266a` for build 9 (2.0, 2026-09-14), build 10 (2.0.1, 2026-09-18) and
 build 11 (2.0.2, 2026-10-27). Each time the two sentinels were present and the app referenced 151
@@ -228,3 +228,73 @@ TestFlight: `asc_publish_build.py 11 --whats-new docs/WHATS_NEW_2.0.2_TESTFLIGHT
 to Public Preview and set What to Test; the beta review was submitted at 2026-10-27T03:21:26Z
 (`POST /betaAppReviewSubmissions` with the build) → externalBuildState WAITING_FOR_BETA_REVIEW.
 After App Store approval, release 2.0.2 by hand (ASC button or appStoreVersionReleaseRequests).
+
+## 10. 2.0.3 (build 12) — 2026-11-01
+
+Why: LFM3 1.7B (`lfm3-1.7b`) joins coreai-kit's catalog with the kit's LFM3 merge, and every released
+kit reads that catalog from `main`. Before this build (read in its code, not run) the app would stream
+LFM3's thinking and `</think>` into the answer on the Mac, and on an iPhone it would list the model and
+fail at Load with `variantNotFound`, before downloading anything. Its iPhone files (`ios-h19p/`) run on
+the iPhone 18 Pro only, on the static-shape engine.
+Fixed: Chat and Bench mark a model whose iPhone files are built for another iPhone and say why before
+any download (coreai-kit `CatalogEntry.unavailableReason`; on the iPhone 18 Pro today: Nemotron-3-Nano
+4B), and Vision stops LFM2.5-VL and North Micro Vision at Download & Load with that reason. Chat loads a
+model with its variant's engine (`CatalogEntry.resolvedEngine`) and keeps the thinking of a reply that
+starts inside a thinking block apart from the answer; with Think off, reasoning that ends in a lone
+`</think>` goes to Thinking too (`ReplyText`); Think off sends the template's own thinking-off prompt
+where the template has one. Speak offers Audio8-TTS on the Mac only. Not marked yet: Gemma 4 E2B
+(iPhone files in `gpu-pipelined-b2/…_aotc_h18p`, not an `ios-<arch>/` folder).
+Code: coreai-kit `b40b1b9` (branch `zoo-app-lfm3`: the LFM3 kit lane's six commits 812572a…90b8007 on
+`main` b13f54a, then ane-variant's ad8f958, e25f7ad, c4fc800 and 3a82d60 ported onto them, then 2665de9
+and 308f4f3 (the LFM3 kit pull request's b1f4646 and f517203, picked), then b40b1b9) and this repo's
+`3c75dde` (8b2bb50, cf16ea4, 40c1b6b, 2d13e9c, 4d86df9, 3c75dde on 0aa3f2c). The archive builds against
+`../coreai-kit`, which must be on `zoo-app-lfm3` at `b40b1b9`: `ane-variant` lacks
+`CatalogEntry.unavailableReason`.
+
+Device check before upload, on the iPhone 18 Pro (iOS 27.2 24B5099f), dev builds
+(`com.daisukemajima.coreaizoo`) on coreai-kit b40b1b9, 2026-10-31 JST. This tree's code (4d86df9; the
+What's New commit after it adds text files only), 21:25–21:30: `UITests/LFM3Tests` 5 passed (test1,
+test1b and test1c: the marks and reasons before any download, no files in the model store before or
+after; test2: LFM3 1.7B downloaded and loaded in the app, Think on and off in the Chat tab; test3: the
+app's delete removed the bundle), and a scripted Chat run (`-ZooCatalog builtin -ZooChatScript`) of
+LFM3 1.7B with Think off: no `<think>` or `</think>` in any answer, 7 of 8 answers correct. On the Mac
+(M4 Max, macOS 27.0 26A428), the Release build of this code: LFM3 1.7B Think on in 3 launches (24 of 24
+correct) and off in 4 (30 of 32), no marker in any answer. The app samples at the kit's default
+temperature 0.7, so these are counts, not a match with greedy answers.
+The code before 4d86df9, which changes only how a reply is split between the answer and Thinking. On
+the iPhone: `UITests/DownloadsTests` 4 passed, 1 skipped (20:57–21:00); scripted Chat runs
+(20:35–20:41) that downloaded `ios-h19p/` (2,164 MB, the catalog's size; 2,167 MB on disk by the app's
+measure after the load) in the app and loaded it on the static-shape engine: Think on in 3 launches, 24
+of 24 correct, the thinking under Thinking; Think off, 8 of 8. On the Mac: the Bench run, Qwen3 0.6B,
+LFM2.5 2.6B and MiniCPM5 1B with Think on and off, Kokoro and Audio8-TTS in Speak, and a first run on
+an empty store. During an earlier test2 on that code (21:14), a Jetsam event killed siriappintentsd and
+ANECompilerService while CoreAIZoo, frontmost, used 2,560 MB; the app ran on. The UI tests ran after UI
+Automation was turned on in Settings > Developer; before that, the runner stopped at "Timed out while
+enabling automation mode" (the "Enable UI Automation" passcode prompt of §9). The iPhone 17 Pro was not
+connected, so its mark is not checked on a device; `LFM3Tests/test1` takes the same path on the 18 Pro
+with LFM3's iPhone row given the 17 Pro's architecture.
+
+Traced §1–§4 again with Xcode 27.0 `27A266a`: sentinels 1/2 present, 215 FoundationModels symbols (the
+151 of the RC list all present, and 64 more from the kit's newer use of the framework, such as
+`Transcript.Reasoning` and `GenerationSchema`). `BUILD_NUMBER=12 ./make-testflight.sh`: the archive's
+Info.plist read 2.0.3 / 12 / `com.daisukemajima.CoreAIChat`; UPLOAD SUCCEEDED at 00:59 JST.
+
+Submission: `asc_submit_version.py 2.0.3 12 --whats-new docs/WHATS_NEW_2.0.3.txt --go` (JST
+01:02–01:03): build 12 was VALID when it started; version 2.0.3 created (MANUAL), build attached,
+What's New set (228 chars); review submitted 2026-10-31T16:03:12Z → version WAITING_FOR_REVIEW.
+TestFlight: `asc_publish_build.py 12 --whats-new docs/WHATS_NEW_2.0.3_TESTFLIGHT.txt` added build 12
+to Public Preview and set What to Test; the beta review was submitted at 2026-10-31T16:03:46Z
+(`POST /betaAppReviewSubmissions` with the build) → externalBuildState WAITING_FOR_BETA_REVIEW.
+
+Mac: `BUILD_NUMBER=12 ./make-macos-dmg.sh` archived and exported the app; its own dmg step failed this
+time with `hdiutil: create failed - No child processes`, after `hdiutil create` had been stopped and
+continued while it ran (the Mac was shared with other work). The dmg was then made from that export
+with README.txt and Licenses/ (the shape of the 2.0.9 dmg; the license files are the same, the commits
+of coreai-models, swift-huggingface and CoreAIKit change), and signed, notarized and stapled; the app
+binary inside equals the export's, and `spctl` accepts both the dmg and the app inside it (Notarized
+Developer ID). The app copied out of that dmg and started with an empty model store downloaded Qwen3
+0.6B (352 MB), loaded it, answered one message and returned to Ready (04:45 JST; the answer itself
+is not checked, the app samples at temperature 0.7). GitHub release [mac-2.0.3.12](https://github.com/john-rocky/coreai-model-zoo/releases/tag/mac-2.0.3.12):
+`CoreAIZoo-2.0.3-12.dmg`, SHA-256 `cea6693ced872a59b77e078926053045b1222a34165d59477b20802f051c05ab`.
+After App Store approval, release 2.0.3 by hand (ASC button or appStoreVersionReleaseRequests). The
+kit's LFM3 merge waits for that (it reaches every released kit through the live catalog).
