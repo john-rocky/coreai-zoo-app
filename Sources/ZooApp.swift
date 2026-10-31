@@ -6,6 +6,13 @@ import SwiftUI
 
 @main
 struct CoreAIZooApp: App {
+    init() {
+        // Scripted checks (`-ZooChatScript`, `-ZooSmoke`: launch arguments only) start here
+        // rather than in a tab's view: a Mac with its screen locked opens no window.
+        ChatScript.startIfRequested()
+        SmokeScript.startIfRequested()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
