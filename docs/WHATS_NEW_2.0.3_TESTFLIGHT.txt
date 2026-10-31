@@ -1,0 +1,7 @@
+Build 12 — 2.0.3.
+
+- Chat and Bench mark Nemotron-3-Nano 4B on an iPhone it is not built for and say why, before any download. On such an iPhone, Vision stops LFM2.5-VL and North Micro Vision at Download & Load with the reason, before the download.
+- Think off now sends the chat template's own thinking-off prompt for MiniCPM5 1B and 2B, Nanbeige4.2 3B and, on an iPhone 17 Pro, Nemotron-3-Nano 4B. Please check that their replies with Think off are plain answers: no thinking text, no <think> marks, not cut short.
+- Known: Gemma 4 E2B in Chat is not marked yet: on an iPhone its files are not built for, it still downloads and then fails to load.
+
+Please report anything that fails to load or generate at https://github.com/john-rocky/coreai-model-zoo/issues (Model / runtime issue).

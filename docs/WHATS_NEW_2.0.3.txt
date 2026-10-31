@@ -1,0 +1,2 @@
+Chat and Bench now mark Nemotron-3-Nano 4B on an iPhone it is not built for and say why, before anything is downloaded.
+On such an iPhone, Vision stops LFM2.5-VL and North Micro Vision when you tap Download & Load, and says why.
