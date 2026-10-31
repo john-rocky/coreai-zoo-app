@@ -15,8 +15,8 @@ final class DownloadsTests: XCTestCase {
     var app: XCUIApplication!
 
     /// The live catalog's iOS voices, in catalog order (2026-10-27). VoxCPM, VoxCPM2 and
-    /// VibeVoice ship iPhone files built for the iPhone 17 models only; this app has no engine
-    /// for Audio8.
+    /// VibeVoice ship iPhone files built for the iPhone 17 models only; this app does not offer
+    /// Audio8 on an iPhone yet (not measured there).
     static let voices = [
         "VoxCPM 0.5B", "VoxCPM2 2B", "Audio8-TTS Preview 0.6B",
         "VibeVoice-Realtime 0.5B (multi-speaker)",
