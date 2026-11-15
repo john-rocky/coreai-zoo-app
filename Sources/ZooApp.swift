@@ -21,8 +21,8 @@ struct CoreAIZooApp: App {
 }
 
 struct RootView: View {
-    // Capability tabs. Grouped by modality (the KICKOFF's Chat / Vision / Camera / Audio / …
-    // plan) so the tab bar stays short; each tab grows as its capabilities land. Vision hosts
+    // Capability tabs. Grouped by modality (Chat / Vision / Camera / Audio / …)
+    // so the tab bar stays short; each tab grows as its capabilities land. Vision hosts
     // Ask (VLM) + Read (OCR, Mac); Camera hosts Depth/Detect/Action/Upscale; Audio hosts Speak
     // + Transcribe + Music + Understand (Mac). Bench is the community-funnel tab (on-device
     // tok/s → shareable blob). iPhone keeps exactly 5 tabs (Chat/Vision/Camera/Audio/Bench);

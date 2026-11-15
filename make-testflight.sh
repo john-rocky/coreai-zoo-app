@@ -39,7 +39,7 @@ APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD="$APP_DIR/build"
 ARCHIVE="$BUILD/CoreAIZoo.xcarchive"
 
-# The existing "CoreAI Zoo" ASC record lives under this bundle id (see ZOO_APP_SHIP_KICKOFF.md).
+# The existing "CoreAI Zoo" ASC record lives under this bundle id.
 SHIP_BUNDLE_ID="${SHIP_BUNDLE_ID:-com.daisukemajima.CoreAIChat}"
 BUILD_NUMBER="${BUILD_NUMBER:-6}"
 
